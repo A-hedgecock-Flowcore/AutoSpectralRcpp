@@ -1,7 +1,7 @@
 Package: AutoSpectralRcpp
 Type: Package
 Title: Fast Tools for Unmxing Spectral Flow Cytometry Data
-Version: 0.1.6
+Version: 0.2.0
 Authors@R: c(
     person(
       "Oliver", "Burton",
@@ -16,7 +16,7 @@ License: AGPL (>= 3)
 Encoding: UTF-8
 LinkingTo: Rcpp, RcppArmadillo
 Imports: Rcpp
-Suggests: AutoSpectral
+Suggests: AutoSpectral (>= 0.9.0)
 SystemRequirements: OpenMP
 LazyData: true
 Roxygen: list(markdown = TRUE)

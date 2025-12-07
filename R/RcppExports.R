@@ -13,7 +13,7 @@ optimize_unmix_rcpp_woodbury <- function(remaining_raw, unmixed, spectra, pos_th
     .Call(`_AutoSpectralRcpp_optimize_unmix_rcpp_woodbury`, remaining_raw, unmixed, spectra, pos_thresholds, optimize_idx_r, variantsList, weights, weighted, nthreads, singular_tol)
 }
 
-poisson_irls_rcpp_parallel <- function(raw_data_in, spectra, beta_init_in, maxit = 25L, tol = 1e-6, n_threads = 1L, divergence_threshold = 1e4) {
-    .Call(`_AutoSpectralRcpp_poisson_irls_rcpp_parallel`, raw_data_in, spectra, beta_init_in, maxit, tol, n_threads, divergence_threshold)
+poisson_irls_rcpp_parallel <- function(raw_data_in, spectra, beta_init_in, maxit = 25L, tol = 1e-6, n_threads = 1L, divergence_threshold = 1e4, max_halving_steps = 20L) {
+    .Call(`_AutoSpectralRcpp_poisson_irls_rcpp_parallel`, raw_data_in, spectra, beta_init_in, maxit, tol, n_threads, divergence_threshold, max_halving_steps)
 }
 

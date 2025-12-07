@@ -25,12 +25,10 @@ unmix.wls <- function( raw.data, spectra, weights = NULL ) {
   spectra <- t( spectra )
 
   if ( is.null( weights ) ) {
-    channel.var <- colMeans( raw.data )
-
     # weights are inverse of channel variances (mean if Poisson)
-    channel.weights <- 1 / ( channel.var + 1e-6 )
-
-    W <- diag( channel.weights )
+    weights <- pmax( abs( colMeans( raw.data ) ), 1e-6 )
+    weights <- 1 / weights
+    W <- diag( weights )
 
   } else {
     if ( !is.numeric( weights ) )
@@ -46,10 +44,9 @@ unmix.wls <- function( raw.data, spectra, weights = NULL ) {
   }
 
   # Weighted LS solution: (M^T W M)^{-1} M^T W
-  unmixing.matrix <- solve( t( spectra ) %*% W %*% spectra ) %*%
-    ( t( spectra ) %*% W )
+  unmixing.matrix <- solve( t( spectra ) %*% W %*% spectra, t( spectra ) %*% W )
 
-  unmixed.data <- raw.data %*% t( unmixing.matrix )
+  unmixed.data <- tcrossprod( raw.data, unmixing.matrix )
 
   colnames( unmixed.data ) <- colnames( spectra )
 

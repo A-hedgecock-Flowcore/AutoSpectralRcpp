@@ -11,7 +11,8 @@ poisson_irls_rcpp_parallel(
   maxit = 25L,
   tol = 1e-06,
   n_threads = 1L,
-  divergence_threshold = 10000
+  divergence_threshold = 10000,
+  max_halving_steps = 20
 )
 }
 \arguments{
@@ -28,6 +29,9 @@ poisson_irls_rcpp_parallel(
 \item{n_threads}{number of threads to use (OpenMP)}
 
 \item{divergence_threshold}{maximum allowed divergence before fallback}
+
+\item{max_halving_steps}{maximum number of halving steps to use to approach
+convergence}
 }
 \description{
 Poisson IRLS Parallel

@@ -77,16 +77,22 @@ higher level OpenMP parallelization.
 The AutoSpectralRcpp package optionally uses OpenMP for parallel
 processing. This is, unfortunately, quite difficult to set up on Mac. It
 should work automatically on Windows. To enable it, define PKG_CXXFLAGS
-= -fopenmp in a personal ~/.R/Makevars file (Linux/macOS). You may need
-the following:
+= -fopenmp in a personal ~/.R/Makevars file (on Linux/macOS). You may
+need the following:
 
 CXX_STD = CXX17 PKG_CXXFLAGS = -fopenmp PKG_LIBS = -fopenmp
 \$(LAPACK_LIBS) \$(BLAS_LIBS) \$(FLIBS)
 
-You can install the development version of AutoSpectralRcpp like so:
+You can install the stable version of AutoSpectralRcpp like so:
 
 ``` r
 devtools::install_github("DrCytometer/AutoSpectralRcpp")
+```
+
+The development version may be slightly ahead:
+
+``` r
+devtools::install_github("DrCytometer/AutoSpectralRcpp@dev")
 ```
 
 ## Example
@@ -106,4 +112,5 @@ poisson.unmixed <- unmix.poisson.fast( raw.spectral.data, panel.spectra )
 ```
 
 Spectra for unmixing can be generated using AutoSpectral, or extracted
-from other flow cytometry tools (e.g., FlowJo, FCSExpress).
+from other flow cytometry tools (e.g., FlowJo, FCSExpress). See the help
+pages for `AutoSpectral` for more info.

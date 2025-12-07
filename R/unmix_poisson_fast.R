@@ -68,7 +68,7 @@ unmix.poisson.fast <- function( raw.data, spectra, weights = NULL,
   # WLS initial unmixing
   wls.unmix <- unmix.wls( raw.data, spectra, weights )
   beta.init <- wls.unmix
-  beta.init[ beta.init <= 0 ] <- 1e-6
+  #beta.init[ beta.init <= 0 ] <- 1e-6
 
   # call fast C++ IRLS
   unmixed <- poisson_irls_rcpp_parallel(

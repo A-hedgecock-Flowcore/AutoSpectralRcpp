@@ -70,8 +70,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // poisson_irls_rcpp_parallel
-arma::mat poisson_irls_rcpp_parallel(const arma::mat& raw_data_in, const arma::mat& spectra, const arma::mat& beta_init_in, const int maxit, const double tol, const int n_threads, const double divergence_threshold);
-RcppExport SEXP _AutoSpectralRcpp_poisson_irls_rcpp_parallel(SEXP raw_data_inSEXP, SEXP spectraSEXP, SEXP beta_init_inSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP n_threadsSEXP, SEXP divergence_thresholdSEXP) {
+arma::mat poisson_irls_rcpp_parallel(const arma::mat& raw_data_in, const arma::mat& spectra, const arma::mat& beta_init_in, const int maxit, const double tol, const int n_threads, const double divergence_threshold, const int max_halving_steps);
+RcppExport SEXP _AutoSpectralRcpp_poisson_irls_rcpp_parallel(SEXP raw_data_inSEXP, SEXP spectraSEXP, SEXP beta_init_inSEXP, SEXP maxitSEXP, SEXP tolSEXP, SEXP n_threadsSEXP, SEXP divergence_thresholdSEXP, SEXP max_halving_stepsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -82,7 +82,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type tol(tolSEXP);
     Rcpp::traits::input_parameter< const int >::type n_threads(n_threadsSEXP);
     Rcpp::traits::input_parameter< const double >::type divergence_threshold(divergence_thresholdSEXP);
-    rcpp_result_gen = Rcpp::wrap(poisson_irls_rcpp_parallel(raw_data_in, spectra, beta_init_in, maxit, tol, n_threads, divergence_threshold));
+    Rcpp::traits::input_parameter< const int >::type max_halving_steps(max_halving_stepsSEXP);
+    rcpp_result_gen = Rcpp::wrap(poisson_irls_rcpp_parallel(raw_data_in, spectra, beta_init_in, maxit, tol, n_threads, divergence_threshold, max_halving_steps));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -91,7 +92,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_AutoSpectralRcpp_optimize_unmix_rcpp_exact", (DL_FUNC) &_AutoSpectralRcpp_optimize_unmix_rcpp_exact, 9},
     {"_AutoSpectralRcpp_optimize_unmix_rcpp_fast", (DL_FUNC) &_AutoSpectralRcpp_optimize_unmix_rcpp_fast, 9},
     {"_AutoSpectralRcpp_optimize_unmix_rcpp_woodbury", (DL_FUNC) &_AutoSpectralRcpp_optimize_unmix_rcpp_woodbury, 10},
-    {"_AutoSpectralRcpp_poisson_irls_rcpp_parallel", (DL_FUNC) &_AutoSpectralRcpp_poisson_irls_rcpp_parallel, 7},
+    {"_AutoSpectralRcpp_poisson_irls_rcpp_parallel", (DL_FUNC) &_AutoSpectralRcpp_poisson_irls_rcpp_parallel, 8},
     {NULL, NULL, 0}
 };
 
