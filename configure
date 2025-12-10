@@ -1,0 +1,23 @@
+#!/bin/sh
+
+echo "Checking for OpenMP support..."
+
+# Default: no OpenMP
+OPENMP_FLAGS=""
+
+# macOS detection
+if [ "$(uname)" = "Darwin" ]; then
+  # Check if clang supports OpenMP
+  if clang -fopenmp -dM -E - < /dev/null >/dev/null 2>&1; then
+    OPENMP_FLAGS="-Xpreprocessor -fopenmp -lomp"
+  fi
+else
+  # For Linux/Windows, R's SHLIB_OPENMP_CXXFLAGS is enough
+  OPENMP_FLAGS="$(SHLIB_OPENMP_CXXFLAGS)"
+fi
+
+# Write a Makevars.local that will be sourced automatically
+echo "PKG_CXXFLAGS += ${OPENMP_FLAGS}" > src/Makevars.local
+echo "PKG_LIBS += ${OPENMP_FLAGS}" >> src/Makevars.local
+
+echo "OpenMP flags set to: ${OPENMP_FLAGS}"
