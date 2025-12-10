@@ -1,3 +1,3 @@
 CXX_STD = CXX17
-PKG_CXXFLAGS = -O3 -funroll-loops -fopenmp
+PKG_CXXFLAGS = -O3 -funroll-loops -DARMA_NO_DEBUG -fopenmp
 PKG_LIBS = -fopenmp $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
