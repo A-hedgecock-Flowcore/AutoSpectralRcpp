@@ -1,3 +1,7 @@
 CXX_STD = CXX17
-PKG_CXXFLAGS = -O3 -funroll-loops -DARMA_NO_DEBUG -fopenmp
-PKG_LIBS = -fopenmp $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)
+
+# Portable flags for Windows Rtools
+PKG_CXXFLAGS = $(CXXFLAGS) -DARMA_NO_DEBUG $(SHLIB_OPENMP_CXXFLAGS)
+
+# Libraries
+PKG_LIBS = $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS) $(SHLIB_OPENMP_CXXFLAGS)
