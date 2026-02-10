@@ -20,6 +20,10 @@ knitr::opts_chunk$set(
 
 AutoSpectralRcpp provides a wrapper around fast C++ functions for performing spectral unmixing of flow cytometry data using per-cell methods.
 
+Latest release:
+Version 1.0.0
+This is compatible with AutoSpectral v1.0.0.
+
 ![Per-cell fluorophore optimization](images/PerCellFluorophoreOptimization.jpg)
 When unmixed using OLS in the context of the 42-colour panel containing APC and other red laser-excited dyes, the BUV661-stained cells exhibit variability with respect to red laser dyes, with the characteristic trumpet shape when viewed on a biexponential transformation. When the BUV661 spectrum is allowed to vary on a per-cell basis between the range of valid options available from the single-colour control and a best fit per-cell is selected based on residual minimization, the variability in APC values for BUV661+ events diminishes substantially. To demonstrate the effectiveness and accuracy of this approach, we created a set of synthetic data. In this 42-colour data set, BUV661 and APC are used to detect CD19 and Foxp3, markers that are not co-expressed. We created a set of data in silico where the raw data for BUV661+ and APC+ events (based on OLS unmixing) were combined or maintained as separate original events. In this way, ground truth is available for BUV661+, APC+ and BUV661+APC+ events. 
 
