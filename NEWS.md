@@ -1,3 +1,13 @@
+# AutoSpectralRcpp 1.0.0 (2026-02-10)
+
+## New features
+- Parallelized C++ assignment and unmixing of per-cell autofluorescence
+
+## Improvements
+- Faster (~10x) per-cell optimization using residual-alignment pre-screening.
+- Import functions from AutoSpectral rather than duplicating.
+
+
 # AutoSpectralRcpp 0.2.0 (2025-12-07)
 
 ## New features
