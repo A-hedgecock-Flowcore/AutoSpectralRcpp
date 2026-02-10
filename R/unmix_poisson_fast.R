@@ -7,6 +7,8 @@
 #' (IRLS) towards a Poisson distribution, starting with weighted least squares
 #' (WLS). This is a wrapper function in R around the C++ worker function.
 #'
+#' @importFrom AutoSpectral unmix.wls.fast
+#'
 #' @param raw.data Matrix of cells x detectors
 #' @param spectra Matrix of fluorophores x detectors
 #' @param weights Optional numeric vector of weights, one per fluorescent
@@ -33,11 +35,17 @@
 #' @export
 
 
-unmix.poisson.fast <- function( raw.data, spectra, weights = NULL,
-                                maxit = 100,  tol = 1e-6,
-                                n_threads = 0, divergence.threshold = 1e4,
-                                divergence.handling = "Balance",
-                                balance.weight = 0.5 ) {
+unmix.poisson.fast <- function(
+    raw.data,
+    spectra,
+    weights = NULL,
+    maxit = 100,
+    tol = 1e-6,
+    n_threads = 0,
+    divergence.threshold = 1e4,
+    divergence.handling = "Balance",
+    balance.weight = 0.5
+) {
 
   # safety checks on inputs so we don't crash when calling C++
   if ( !is.matrix( raw.data ) || !is.matrix( spectra ) ) {
@@ -66,7 +74,7 @@ unmix.poisson.fast <- function( raw.data, spectra, weights = NULL,
   spectra[ spectra <= 0 ] <- 1e-6
 
   # WLS initial unmixing
-  wls.unmix <- unmix.wls( raw.data, spectra, weights )
+  wls.unmix <- AutoSpectral::unmix.wls.fast( raw.data, spectra, weights )
   beta.init <- wls.unmix
   #beta.init[ beta.init <= 0 ] <- 1e-6
 
