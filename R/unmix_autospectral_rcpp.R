@@ -206,6 +206,9 @@ unmix.autospectral.rcpp <- function(
   # use AF-subtracted raw data as input for fluorophore optimization
   remaining.raw <- raw.data - result$fitted.af
 
+  # restrict optimization to fluors present in names( variants )
+  optimize.fluors <- fluorophores[ fluorophores %in% names( variants ) ]
+
   # if delta.list and delta.norms are not provided by AutoSpectral (<v1.0.0), calculate
   # this can be done in a single lapply call
   if ( is.null( delta.list ) ) {
@@ -250,9 +253,6 @@ unmix.autospectral.rcpp <- function(
 
   # pre-calculate indices rather than using names
   fluorophores <- which( rownames( combined.spectra ) %in% fluorophores )
-
-  # restrict optimization to fluors present in names( variants )
-  optimize.fluors <- fluorophores[ fluorophores %in% names( variants ) ]
 
   # check inputs for C++
   optimize.fluors <- sanitize.optimization.inputs(
