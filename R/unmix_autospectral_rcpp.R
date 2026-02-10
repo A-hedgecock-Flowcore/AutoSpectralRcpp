@@ -53,7 +53,7 @@
 #'
 #' @export
 
-unmix.autospectral.rcpp.test2 <- function(
+unmix.autospectral.rcpp <- function(
     raw.data,
     spectra,
     af.spectra,

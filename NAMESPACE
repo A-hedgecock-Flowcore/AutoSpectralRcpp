@@ -3,7 +3,7 @@
 export(assign.af.fluorophores.rcpp)
 export(poisson_irls_rcpp_parallel)
 export(sanitize.optimization.inputs)
-export(unmix.autospectral.rcpp.test2)
+export(unmix.autospectral.rcpp)
 export(unmix.poisson.fast)
 importFrom(AutoSpectral,assign.af.residuals)
 importFrom(AutoSpectral,unmix.wls.fast)
