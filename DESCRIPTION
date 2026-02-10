@@ -1,7 +1,7 @@
 Package: AutoSpectralRcpp
 Type: Package
 Title: Fast Tools for Unmxing Spectral Flow Cytometry Data
-Version: 0.2.0
+Version: 1.0.0
 Authors@R: c(
     person(
       "Oliver", "Burton",
@@ -14,12 +14,19 @@ Description: Add-on to AutoSpectral for fast per-cell spectral unmixing.
     Requires Rcpp sourcing and OpenMP.
 License: AGPL (>= 3)
 Encoding: UTF-8
-LinkingTo: Rcpp, RcppArmadillo
-Imports: Rcpp
-Suggests: AutoSpectral (>= 0.9.0)
-SystemRequirements: OpenMP
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 URL: https://github.com/DrCytometer/AutoSpectralRcpp
 BugReports: https://github.com/DrCytometer/AutoSpectralRcpp/issues
+SystemRequirements: OpenMP
+LinkingTo: 
+    Rcpp, 
+    RcppArmadillo
+Imports: 
+    Rcpp,
+    lifecycle,
+    parallelly,
+    AutoSpectral (>= 1.0.0)
+Remotes: 
+    DrCytometer/AutoSpectral
