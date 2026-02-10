@@ -6,3 +6,11 @@
 .httr-oauth
 .DS_Store
 .quarto
+
+# Rcpp / Compiled binaries
+src/*.o
+src/*.so
+src/*.dll
+src/*.dll.a
+src-i386/
+src-x64/
