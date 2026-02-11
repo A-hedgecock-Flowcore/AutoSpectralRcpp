@@ -17,30 +17,31 @@
 #'
 #' @export
 
+
 sanitize.optimization.inputs <- function(
     spectra,
     optimize.fluors,
     variants,
     delta.norms
 ) {
-  
+
   # identify which fluors actually have meaningful variants
   valid.optimization.fluors <- c()
-  
+
   for ( fl in optimize.fluors ) {
-    # 1. Does it exist in the variants list?
-    if (!fl %in% names(variants)) next
-    
-    # 2. Is the delta.norm valid (not NULL, not zero)?
+    # does the fluorophore exist in the variants list?
+    if ( !fl %in% names( variants ) ) next
+
+    # is the delta.norm valid (not NULL, not zero)?
     if ( is.null( delta.norms[[ fl ]] ) || all( delta.norms[[ fl ]] < 1e-12 ) ) {
       message(
         paste( "Skipping optimization for", fl, "- No spectral variation detected." )
       )
       next
     }
-    
+
     valid.optimization.fluors <- c( valid.optimization.fluors, fl )
   }
-  
+
   return( valid.optimization.fluors )
 }
