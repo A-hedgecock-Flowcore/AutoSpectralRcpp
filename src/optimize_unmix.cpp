@@ -1,4 +1,8 @@
 #include <RcppArmadillo.h>
+#include <algorithm>
+#include <vector>
+#include <string>
+
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -26,6 +30,7 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
   const arma::uword n_all_fluors = base_spectra.n_rows;
   const size_t n_variants_lists = (size_t)variants.size();
 
+  // Extract data for thread safety and speed
   std::vector<std::string> cpp_names = as<std::vector<std::string>>(fluor_names);
   std::vector<std::string> cpp_opt_names = as<std::vector<std::string>>(optimize_fluors);
   std::vector<std::string> v_names = as<std::vector<std::string>>(variants.names());
@@ -41,19 +46,27 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
     d_mats[f] = as<arma::mat>(delta_list[f]);
     dn_vecs[f] = as<arma::vec>(delta_norms[f]);
 
-    // Safeguard: If the norm vector is empty or the max norm is 0 (all zeros), do not optimize
-    if (dn_vecs[f].is_empty() || arma::max(dn_vecs[f]) <= 1e-12) {
-      should_opt[f] = false;
-    } else {
-      // Check if this fluor is in the optimization subset
-      for (const std::string& opt_name : cpp_opt_names) {
-        if (opt_name == v_names[f]) {
-          should_opt[f] = true;
-          break;
-        }
+    // Default to false for every fluorophore in the variants list
+    should_opt[f] = false;
+
+    // First check: Is it even in the user's list of fluors to optimize?
+    bool is_requested = false;
+    for (const std::string& opt_name : cpp_opt_names) {
+      if (opt_name == v_names[f]) {
+        is_requested = true;
+        break;
       }
     }
 
+    // Second check: If requested, does it actually have valid variants (non-zero norms)?
+    if (is_requested) {
+      bool has_variants = !dn_vecs[f].is_empty() && (arma::max(dn_vecs[f]) > 1e-12);
+      if (has_variants) {
+        should_opt[f] = true;
+      }
+    }
+
+    // Map to master index (independent of optimization status)
     for (size_t n = 0; n < cpp_names.size(); ++n) {
       if (cpp_names[n] == v_names[f]) {
         var_to_master[f] = (int)n;
@@ -79,12 +92,15 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
   omp_set_num_threads(nthreads);
 #endif
 
+  // --- parallel optimization loop ---
 #pragma omp parallel for schedule(dynamic, 256)
   for (arma::uword i = 0; i < n_cells; ++i) {
+    // Thread-local data
     arma::rowvec cell_raw = raw_data.row(i);
     arma::rowvec cell_unmixed = unmixed_init.row(i);
     arma::mat cell_spectra_final = base_spectra;
 
+    // Early Exit Check
     bool any_pos = false;
     for (int idx : exit_indices) {
       if (cell_unmixed[idx] >= pos_thresholds[idx]) {
@@ -92,25 +108,42 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
         break;
       }
     }
-
     if (!any_pos) {
       final_output.row(i) = cell_unmixed;
       continue;
     }
 
+    // Initial Unmix for present fluors
     arma::uvec pos_idx = arma::find(cell_unmixed.t() >= pos_thresholds);
     arma::mat spectra_curr = cell_spectra_final.rows(pos_idx);
     arma::rowvec unmixed_curr = arma::solve(spectra_curr.t(), cell_raw.t(), arma::solve_opts::fast).t();
     arma::rowvec resid = cell_raw - (unmixed_curr * spectra_curr);
     double error_final = arma::sum(arma::abs(resid));
-
-    // Square the residual norm once per cell to speed up scoring
     double resid_norm = std::sqrt(arma::dot(resid, resid));
 
+    // Sorting: Rank fluors by current abundance
+    std::vector<std::pair<double, size_t>> fluor_order;
     for (size_t f = 0; f < n_variants_lists; ++f) {
-      // Combined safeguard check
       if (!should_opt[f]) continue;
+      int master_idx = var_to_master[f];
+      for(arma::uword p = 0; p < pos_idx.n_elem; ++p) {
+        if((int)pos_idx[p] == master_idx) {
+          fluor_order.push_back({unmixed_curr[p], f});
+          break;
+        }
+      }
+    }
 
+    // Tie-breaking Sort: Abundance first, then original index for stability
+    std::sort(fluor_order.begin(), fluor_order.end(),
+              [](const std::pair<double, size_t>& a, const std::pair<double, size_t>& b) {
+                if (std::abs(a.first - b.first) > 1e-9) return a.first > b.first;
+                return a.second < b.second;
+              });
+
+    // Optimization per Fluorophore
+    for (auto const& pair_data : fluor_order) {
+      size_t f = pair_data.second;
       int master_idx = var_to_master[f];
       int row_in_curr = -1;
       for(arma::uword p = 0; p < pos_idx.n_elem; ++p) {
@@ -126,7 +159,6 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
         const arma::vec& dn = dn_vecs[f];
 
         arma::vec scores = (d_fl * resid.t()) * unmixed_curr[row_in_curr];
-        // Divide by the pre-calculated residual norm and the variant's delta norm
         scores /= (dn * resid_norm);
 
         arma::uvec sorted_idx = arma::sort_index(scores, "descend");
@@ -141,11 +173,11 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
           arma::rowvec t_resid = cell_raw - (t_unmix * spectra_curr);
           double t_err = arma::sum(arma::abs(t_resid));
 
+          // If the residual error is lower with this variant, save it
           if (t_err < error_final) {
             error_final = t_err;
             unmixed_curr = t_unmix;
             resid = t_resid;
-            // Update residual norm for the next variant score in this same cell
             resid_norm = std::sqrt(arma::dot(resid, resid));
             cell_spectra_final.row(master_idx) = spectra_curr.row(row_in_curr);
           } else {
@@ -154,6 +186,7 @@ arma::mat optimize_unmix(const arma::mat& raw_data,
         }
       }
     }
+    // Final unmix with all fluors and optimized spectra
     final_output.row(i) = arma::solve(cell_spectra_final.t(), cell_raw.t(), arma::solve_opts::fast).t();
   }
 
