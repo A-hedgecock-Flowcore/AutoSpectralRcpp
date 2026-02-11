@@ -26,8 +26,7 @@
 #' signature for each cell is determined by which unmixing brings the fluorophore
 #' signals closest to 0 (`use.dist0` = `TRUE`) or by which unmixing minimizes the
 #' per-cell residual (`use.dist0` = `FALSE`). Default is `TRUE`.
-#' @param verbose Logical, whether to send messages to the console.
-#' Default is `TRUE`.
+#' @param verbose Logical, default `TRUE`. Whether to send messages to the console.
 #' @param speed Selector for the precision-speed trade-off in AutoSpectral per-cell
 #' fluorophore optimization. Options are `slow`, `medium` and `fast`. From v1.0.0,
 #' this controls the number of variants tested per cell (and per fluorophore).
@@ -36,16 +35,16 @@
 #' will be tested and for `slow`, 10 variants will be tested. From AutoSpectral
 #' v1.0.0, `slow` is the default.
 #' @param parallel Logical, default is `TRUE`. Always use parallel processing in
-#' the C++ version for faster processing.
+#' the C++ version for faster results.
 #' @param threads Numeric, default is `NULL`, in which case `asp$worker.process.n`
 #' will be used. `asp$worker.process.n` is set by default to be one less than the
 #' available cores on the machine. Multi-threading is only used if `parallel` is
 #' `TRUE`.
-#' @param k Number of variants (and autofluorescence spectra) to test per cell.
-#' Allows explicit control over the number used, as opposed to `speed`, which
-#' selects from pre-defined choices. Providing a numeric value to `k` will
-#' override `speed`, allowing up to `k` (or the max available) variants to be
-#' tested. The default is `NULL`, in which case `k` will be ignored.
+#' @param n.variants Number of variants to test per cell. Allows explicit control
+#' over the number used, as opposed to `speed`, which selects from pre-defined
+#' choices. Providing a numeric value to `n.variants` will override `speed`,
+#' allowing up to `n.variants` (or the max available) variants to be tested. The
+#' default is `NULL`, in which case `n.variants` will be ignored.
 #' @param ... Ignored. Previously used for deprecated arguments such as
 #' `calculate.error`.
 #'
@@ -64,7 +63,7 @@ unmix.autospectral.rcpp <- function(
     speed = c("slow", "medium", "fast"),
     parallel = TRUE,
     threads = NULL,
-    k = NULL,
+    n.variants = NULL,
     ...
 ) {
 
@@ -95,8 +94,6 @@ unmix.autospectral.rcpp <- function(
     stop( "Multiple AF spectra must be provided.",
           call. = FALSE )
 
-  if ( verbose ) message( "Determining initial AF assignments for each cell" )
-
   # check for data/spectra column matching
   raw.data.cols <- colnames( raw.data )
   spectra.cols <- colnames( spectra )
@@ -114,6 +111,8 @@ unmix.autospectral.rcpp <- function(
            cannot reorder by name alone." )
     }
   }
+
+  if ( verbose ) message( "Assigning optimal AF spectrum to each cell" )
 
   # set up for per-cell AF extraction
   fluorophores <- rownames( spectra )
@@ -170,11 +169,10 @@ unmix.autospectral.rcpp <- function(
 
   # variable naming
   fluorophore.n <- nrow( spectra )
-  af.idx.in.spectra <- fluorophore.n + 1
   detector.n <- ncol( spectra )
   combined.spectra <- matrix(
     NA_real_,
-    nrow = af.idx.in.spectra,
+    nrow = fluorophore.n + 1,
     ncol = detector.n
   )
   colnames( combined.spectra ) <- colnames( spectra )
@@ -210,14 +208,12 @@ unmix.autospectral.rcpp <- function(
   optimize.fluors <- fluorophores[ fluorophores %in% names( variants ) ]
 
   # if delta.list and delta.norms are not provided by AutoSpectral (<v1.0.0), calculate
-  # this can be done in a single lapply call
   if ( is.null( delta.list ) ) {
-    warning(
+    message(
       paste(
         "For best results, re-calculate `spectra.variants` using AutoSpectral",
         "version 1.0.0 or greater. See `?get.spectra.variants`."
-      ),
-      call. = FALSE
+      )
     )
     # calculate deltas for each fluorophore's variants
     delta.list <- lapply( optimize.fluors, function( fl ) {
@@ -236,25 +232,7 @@ unmix.autospectral.rcpp <- function(
     } )
   }
 
-  # set number of variants to test (`speed`)
-  if ( speed == "slow" ) {
-    k <- 10L
-  } else if ( speed == "medium" ) {
-    k <- 3L
-  } else if ( speed == "fast" ) {
-    k <- 1L
-  } else {
-    k <- 10L
-    warning(
-      "Unrecognized input to `speed`. Defaulting to `slow` method.",
-      call. = FALSE
-    )
-  }
-
-  # pre-calculate indices rather than using names
-  fluorophores <- which( rownames( combined.spectra ) %in% fluorophores )
-
-  # check inputs for C++
+  # check that we have valid spectral variants before going to C++
   optimize.fluors <- sanitize.optimization.inputs(
     spectra,
     optimize.fluors,
@@ -272,6 +250,31 @@ unmix.autospectral.rcpp <- function(
     return( unmixed )
   }
 
+
+  # set number of variants to test (by `speed` if `n.variants` is not provided)
+  if ( length( speed ) > 1 )
+    speed <- speed[ 1 ]
+
+  if ( is.null( n.variants ) || !is.numeric( n.variants ) || length( n.variants ) != 1 ) {
+    n.variants <- switch(
+      speed,
+      "slow"   = 10L,
+      "medium" = 3L,
+      "fast"   = 1L,
+      {
+        warning(
+          paste0(
+            "Unrecognized input '",
+            speed,
+            "' to `speed`. Defaulting to `slow` (n.variants=10)."
+          ),
+          call. = FALSE
+        )
+        10L
+      }
+    )
+  }
+
   if ( verbose ) message( "Optimizing fluorophore unmixing cell-by-cell" )
 
   # call per-cell unmixing function
@@ -286,7 +289,7 @@ unmix.autospectral.rcpp <- function(
     variants = variants,
     delta_list = delta.list,
     delta_norms = delta.norms,
-    k = k,
+    k = n.variants,
     nthreads = threads
   )
 
