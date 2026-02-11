@@ -15,7 +15,7 @@ unmix.autospectral.rcpp(
   speed = c("slow", "medium", "fast"),
   parallel = TRUE,
   threads = NULL,
-  k = NULL,
+  n.variants = NULL,
   ...
 )
 }
@@ -42,8 +42,7 @@ signature for each cell is determined by which unmixing brings the fluorophore
 signals closest to 0 (\code{use.dist0} = \code{TRUE}) or by which unmixing minimizes the
 per-cell residual (\code{use.dist0} = \code{FALSE}). Default is \code{TRUE}.}
 
-\item{verbose}{Logical, whether to send messages to the console.
-Default is \code{TRUE}.}
+\item{verbose}{Logical, default \code{TRUE}. Whether to send messages to the console.}
 
 \item{speed}{Selector for the precision-speed trade-off in AutoSpectral per-cell
 fluorophore optimization. Options are \code{slow}, \code{medium} and \code{fast}. From v1.0.0,
@@ -54,18 +53,18 @@ will be tested and for \code{slow}, 10 variants will be tested. From AutoSpectra
 v1.0.0, \code{slow} is the default.}
 
 \item{parallel}{Logical, default is \code{TRUE}. Always use parallel processing in
-the C++ version for faster processing.}
+the C++ version for faster results.}
 
 \item{threads}{Numeric, default is \code{NULL}, in which case \code{asp$worker.process.n}
 will be used. \code{asp$worker.process.n} is set by default to be one less than the
 available cores on the machine. Multi-threading is only used if \code{parallel} is
 \code{TRUE}.}
 
-\item{k}{Number of variants (and autofluorescence spectra) to test per cell.
-Allows explicit control over the number used, as opposed to \code{speed}, which
-selects from pre-defined choices. Providing a numeric value to \code{k} will
-override \code{speed}, allowing up to \code{k} (or the max available) variants to be
-tested. The default is \code{NULL}, in which case \code{k} will be ignored.}
+\item{n.variants}{Number of variants to test per cell. Allows explicit control
+over the number used, as opposed to \code{speed}, which selects from pre-defined
+choices. Providing a numeric value to \code{n.variants} will override \code{speed},
+allowing up to \code{n.variants} (or the max available) variants to be tested. The
+default is \code{NULL}, in which case \code{n.variants} will be ignored.}
 
 \item{...}{Ignored. Previously used for deprecated arguments such as
 \code{calculate.error}.}
